@@ -5,7 +5,7 @@ import { STYLE_IDS, styleOf, textsFor } from './index.ts';
 const ANY = new Proxy({}, { get: () => 3 });
 
 // У каждого параметра своя метка из четырёх цифр — по ней видно, дошёл ли он до текста.
-const MARKS = ['name', 'match', 'n', 'max', 'accepted', 'count', 'total', 'title', 'judge', 'opponent', 'until', 'date', 'winner', 'score', 'a', 'b', 'by', 'start', 'sec', 'label', 'number', 'round', 'points', 'tracks', 'artist', 'p0', 'p1', 'progress', 'champion', 'names', 'reason', 'duration', 'latest', 'file', 'link', 'contact', 'pair', 'command', 'answers', 'available', 'needed', 'played', 'of', 'changed', 'kept', 'from', 'done', 'all', 'phase', 'mark', 'text', 'rejected', 'max'];
+const MARKS = ['name', 'match', 'n', 'max', 'accepted', 'count', 'total', 'title', 'judge', 'opponent', 'until', 'date', 'winner', 'score', 'a', 'b', 'by', 'start', 'sec', 'label', 'number', 'round', 'points', 'tracks', 'artist', 'p0', 'p1', 'progress', 'champion', 'names', 'reason', 'duration', 'latest', 'file', 'link', 'contact', 'pair', 'command', 'answers', 'available', 'needed', 'played', 'of', 'changed', 'kept', 'from', 'done', 'all', 'phase', 'mark', 'text', 'rejected', 'max', 'lead'];
 const MARKED = new Proxy(
   {},
   { get: (_, key) => (typeof key === 'string' && MARKS.includes(key) ? 1000 + MARKS.indexOf(key) : 3) },
@@ -61,6 +61,11 @@ describe('тексты бота', () => {
     const base = textsFor('base', '1');
     expect(base.match.judge.fixed({ tracks: 3 })).toMatch(/^3 трека,/);
     expect(base.match.judge.limit({ tracks: 21 })).toMatch(/^Не больше 21 трека;/);
+    expect(base.registration.matchRuleLead({ tracks: 3, lead: '2,0' })).toMatch(/^• В матче отбора 3 трека\./);
+    // Ругательный стиль переопределяет строки про ничью, поэтому у него свои строки и про отрыв.
+    const rudeJudge = textsFor('rude', '1').match.judge;
+    expect(rudeJudge.fixedLead({ lead: '2,0' })).toBe('Отрыв меньше 2,0 — гоняем ещё по треку, пока кто-то не оторвётся на 2,0');
+    expect(rudeJudge.extraLead({ n: 1, lead: '2,0' })).toBe('Отрыв меньше 2,0, бля — дополнительный трек 1');
     expect(base.intake.list.full({ max: 3 })).toBe('✅ Все 3 песни приняты');
     expect(base.intake.notice.received({ count: 1, rejected: 1 })).toBe('Получил 1 файл — он не подошёл.');
     expect(base.intake.notice.received({ count: 3, rejected: 1 })).toBe('Получил 3 файла, не подошло: 1.');
